@@ -345,15 +345,20 @@ fun! HtmlIndentGet(lnum)
     if   0 < searchpair(js, '', jse, 'nWb')
     \ && 0 < searchpair(js, '', jse, 'nW')
         " we're inside javascript
-        if getline(searchpair(js, '', '</script>', 'nWb')) !~ '<script [^>]*type=["'']\?text\/\(html\|\(ng-\)\?template\)'
+        let jslnum = searchpair(js, '', '</script>', 'nWb')
+        if getline(jslnum) !~ '<script [^>]*type=["'']\?text\/\(html\|\(ng-\)\?template\)'
         \ && getline(lnum) !~ js && getline(a:lnum) !~ jse
             if restore_ic == 0
               setlocal noic
             endif
             if s:jsindent == ''
-              return cindent(a:lnum)
+              let ind = cindent(a:lnum)
             else
               execute 'let ind = ' . s:jsindent
+            endif
+            if ind == 0
+              return indent(jslnum) + (<SID>HtmlIndentSum(jslnum, -1) * &sw)
+            else
               return ind
             endif
         endif
@@ -436,7 +441,6 @@ fun! HtmlIndentGet(lnum)
     if restore_ic == 0
         setlocal noic
     endif
-
     return lind + (&sw * ind)
 endfun
 
